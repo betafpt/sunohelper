@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7f0df2",
+                        "background-light": "#f7f5f8",
+                        "background-dark": "#121212",
+                        "cyber-accent": "#bc13fe",
+                        "glass-border": "#27272a",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-morphism {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-purple {
+            box-shadow: 0 0 15px rgba(127, 13, 242, 0.4);
+        }
+        .glow-text {
+            text-shadow: 0 0 8px rgba(188, 19, 254, 0.6);
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7f0df2;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 font-display antialiased">
+<!-- Sidebar Extension Container -->
+<div class="fixed top-0 right-0 h-screen w-[360px] bg-background-dark border-l border-glass-border flex flex-col shadow-2xl glass-morphism z-50">
+<!-- Floating Toggle Handle -->
+<div class="absolute -left-10 top-1/2 -translate-y-1/2 h-48 w-10 bg-primary/90 hover:bg-primary transition-colors cursor-pointer rounded-l-xl flex items-center justify-center border-y border-l border-white/20 shadow-[-5px_0_15px_rgba(127,13,242,0.3)]">
+<div class="flex flex-col items-center gap-4 text-white">
+<span class="material-symbols-outlined text-sm">arrow_back_ios_new</span>
+<span class="vertical-text text-[10px] font-bold tracking-[0.3em] uppercase opacity-90">S T U D I O</span>
+</div>
+</div>
+<!-- Header: Gradient Background -->
+<header class="p-6 bg-gradient-to-br from-primary to-indigo-900 border-b border-white/10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/30">
+<span class="material-symbols-outlined text-white fill-1">mic</span>
+</div>
+<div>
+<h1 class="text-white text-lg font-bold leading-none tracking-tight glow-text">AI Songwriter Studio</h1>
+<p class="text-white/60 text-[10px] font-medium uppercase tracking-[0.1em] mt-1">Premium Assistant v2.0</p>
+</div>
+</div>
+</header>
+<!-- Tabs Navigation -->
+<nav class="flex border-b border-glass-border bg-black/20">
+<div class="flex-1 flex flex-col items-center py-3 px-1 cursor-pointer border-b-2 border-primary group relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5"></div>
+<span class="material-symbols-outlined text-primary text-xl mb-1">music_note</span>
+<span class="text-[11px] font-bold text-slate-100 uppercase tracking-wider">Tạo Nhạc</span>
+<!-- Glowing Underline -->
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary glow-purple"></div>
+</div>
+<div class="flex-1 flex flex-col items-center py-3 px-1 cursor-pointer border-b-2 border-transparent hover:bg-white/5 transition-all text-slate-400 hover:text-slate-200">
+<span class="material-symbols-outlined text-xl mb-1">search</span>
+<span class="text-[11px] font-bold uppercase tracking-wider">Tìm Vần</span>
+</div>
+<div class="flex-1 flex flex-col items-center py-3 px-1 cursor-pointer border-b-2 border-transparent hover:bg-white/5 transition-all text-slate-400 hover:text-slate-200">
+<span class="material-symbols-outlined text-xl mb-1">lightbulb</span>
+<span class="text-[11px] font-bold uppercase tracking-wider">Gợi ý</span>
+</div>
+<div class="flex-1 flex flex-col items-center py-3 px-1 cursor-pointer border-b-2 border-transparent hover:bg-white/5 transition-all text-slate-400 hover:text-slate-200">
+<span class="material-symbols-outlined text-xl mb-1">equalizer</span>
+<span class="text-[11px] font-bold uppercase tracking-wider">Phân tích</span>
+</div>
+</nav>
+<!-- Main Content Area ('Tạo Nhạc' Active) -->
+<main class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- Section: Idea Input -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<label class="text-slate-200 text-sm font-bold tracking-wide flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">auto_awesome</span>
+                        Ý tưởng bài hát (Topic)
+                    </label>
+<span class="text-[10px] text-slate-500 font-medium">0/500</span>
+</div>
+<div class="relative group">
+<!-- Glassmorphic Textarea -->
+<textarea class="w-full h-48 bg-white/5 border border-glass-border rounded-xl p-4 text-slate-100 text-sm placeholder:text-slate-600 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 outline-none transition-all resize-none glass-morphism shadow-inner" placeholder="Ví dụ: Một bài nhạc Trap rap cực gắt về sự nỗ lực vượt qua khó khăn trong cuộc sống thành thị..."></textarea>
+<!-- Subtle Glow Decoration -->
+<div class="absolute -bottom-1 -right-1 w-12 h-12 bg-primary/10 blur-xl pointer-events-none"></div>
+</div>
+</div>
+<!-- Parameters (Bonus for polish) -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white/5 border border-glass-border rounded-lg p-3">
+<p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Thể loại</p>
+<div class="flex items-center justify-between text-slate-300">
+<span class="text-xs font-medium">Trap Rap</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+<div class="bg-white/5 border border-glass-border rounded-lg p-3">
+<p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Cảm xúc</p>
+<div class="flex items-center justify-between text-slate-300">
+<span class="text-xs font-medium">Hăng hái</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+</div>
+</div>
+<!-- CTA Button -->
+<button class="w-full group relative flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-cyber-accent text-white font-bold py-4 px-6 rounded-xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_10px_30px_-10px_rgba(127,13,242,0.6)]">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="material-symbols-outlined text-lg">magic_button</span>
+<span class="tracking-wide">Tạo Lyrics &amp; Style</span>
+</button>
+<!-- Quick Features Section -->
+<div class="mt-4">
+<h3 class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-4 border-b border-glass-border pb-2">Tính năng nhanh</h3>
+<div class="space-y-2">
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-glass-border cursor-pointer transition-all group">
+<div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-200 text-xs font-bold">Viết lại Verse</p>
+<p class="text-slate-500 text-[10px]">Làm mới lời bài hát hiện tại</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-glass-border cursor-pointer transition-all group">
+<div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">history</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-200 text-xs font-bold">Lịch sử sáng tác</p>
+<p class="text-slate-500 text-[10px]">Xem lại các bản nháp cũ</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Info -->
+<footer class="p-4 bg-black/40 border-t border-glass-border flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-[10px] text-slate-400 font-medium">Hệ thống sẵn sàng</span>
+</div>
+<span class="text-[10px] text-slate-600 font-medium">© 2024 AI Studio Pro</span>
+</footer>
+</div>
+</body></html>

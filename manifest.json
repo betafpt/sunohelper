@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Suno AI Gemini Manager",
+  "version": "1.0",
+  "description": "Generate Suno lyrics and music styles effortlessly using Google Gemini AI.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.suno.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Suno AI Gemini Manager"
+  },
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.suno.com/*"],
+      "js": ["scripts/content.js"],
+      "css": ["scripts/content.css"]
+    }
+  ]
+}
