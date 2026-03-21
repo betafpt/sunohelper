@@ -50,9 +50,8 @@ function injectSidebar() {
     const sidebar = document.createElement('div');
     sidebar.id = 'suno-studio-sidebar';
     sidebar.innerHTML = `
-        <div id="ss-header">
-            <h1>🎙️ AI Songwriter Studio</h1>
-            <p>Premium Assistant v2.0</p>
+        <div id="ss-header" style="display:flex; justify-content:center; align-items:center; padding: 36px 20px;">
+            <img src="${chrome.runtime.getURL('icons/logo.png')}" style="width: 85%; max-height: 80px; object-fit: contain;" alt="RYTHM Logo">
         </div>
         <div id="ss-tabs">
             <div class="ss-tab active" data-target="tab-gen" title="Tạo Nhanh">Tạo Nhạc</div>
