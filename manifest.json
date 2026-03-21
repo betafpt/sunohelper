@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Suno AI Gemini Manager",
+  "name": "G.Rythm AI Manager",
   "version": "1.0",
   "description": "Generate Suno lyrics and music styles effortlessly using Google Gemini AI.",
   "permissions": [
@@ -11,7 +11,7 @@
   ],
   "action": {
     "default_popup": "popup/index.html",
-    "default_title": "Suno AI Gemini Manager",
+    "default_title": "G.Rythm AI Manager",
     "default_icon": {
       "16": "icons/icon128.png",
       "48": "icons/icon128.png",

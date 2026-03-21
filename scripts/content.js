@@ -58,6 +58,7 @@ function injectSidebar() {
             <div class="ss-tab" data-target="tab-rhyme" title="Từ Điển Vần">Tìm Vần</div>
             <div class="ss-tab" data-target="tab-sug" title="Chủ đề & Tên">Gợi ý</div>
             <div class="ss-tab" data-target="tab-analyze" title="Cấu trúc & Trùng lặp">Phân tích</div>
+            <div class="ss-tab" data-target="tab-template" title="Thư viện cấu trúc">Cấu trúc</div>
         </div>
         
         <!-- Tab: Generate -->
@@ -102,11 +103,17 @@ function injectSidebar() {
         </div>
 
         <!-- Tab: Analyze -->
-        <div class="ss-tab-content" id="tab-analyze">
+    <div class="ss-tab-content" id="tab-analyze">
             <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.5;">Trợ lý AI sẽ đọc Lời Bài Hát hiện tại để phân tích cấu trúc chuẩn và lỗi lặp từ.</p>
             <button id="ss-btn-analyze" class="ss-btn">📑 Bắt Đầu Phân Tích</button>
             <div class="ss-status" id="ss-status-analyze"></div>
             <div class="ss-results" id="ss-results-analyze" style="display:none;"></div>
+        </div>
+
+        <!-- Tab: Template -->
+        <div class="ss-tab-content" id="tab-template">
+            <p style="font-size:13px; color:#94a3b8; margin:0 0 12px 0; line-height:1.5;">Chọn một cấu trúc mẫu để đưa vào khung Lời bài hát của Suno.</p>
+            <div id="ss-template-list"></div>
         </div>
     `;
 
@@ -179,6 +186,8 @@ function setupActions() {
         }
         callBackground('analyze', { lyrics: lyricsEl.value }, 'analyze');
     });
+
+    renderTemplates();
 }
 
 function callBackground(action, payload, tabId) {
@@ -215,15 +224,51 @@ function callBackground(action, payload, tabId) {
                 fillSunoForm(response.data.lyrics, response.data.style_tags);
             } else if (results) {
                 results.style.display = 'block';
-                // Render nicely (Background script should format markdown to simple HTML or we use simple line breaks)
-                // For safety, replace HTML markers manually to prevent XSS. 
-                // Or just use innerText/textContent if returning plain text.
-                // We will use innerHTML but rely on background script to format it with basic <b> <br> tags.
-                // For now, let's just make \n into <br> and **text** into <b>text</b>
-                let html = response.data
-                    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                    .replace(/\n/g, '<br>');
+                let html = response.data;
+                
+                let suggestData = [];
+                let optionRegex = /\[STYLE\]([\s\S]*?)\[\/STYLE\][\s\S]*?\[LYRICS\]([\s\S]*?)\[\/LYRICS\]/gi;
+                
+                html = html.replace(optionRegex, (match, style, lyrics) => {
+                    let id = suggestData.length;
+                    suggestData.push({ style: style.trim(), lyrics: lyrics.trim() });
+                    
+                    return `
+                    <div class="ss-suggestion-card">
+                        <div class="ss-card-row">
+                            <strong>Style of Music:</strong>
+                            <div class="ss-style-tags">${style.trim()}</div>
+                        </div>
+                        <div class="ss-card-row">
+                            <strong>Lyrics/Structure:</strong>
+                            <pre class="ss-lyrics-box">${lyrics.trim()}</pre>
+                        </div>
+                        <button class="ss-btn ss-btn-transfer ss-transfer-btn-${id}" data-id="${id}">✨ Chuyển vào Suno</button>
+                    </div>
+                    `;
+                });
+
+                html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                html = html.replace(/\n/g, '<br>');
                 results.innerHTML = html;
+
+                suggestData.forEach((data, id) => {
+                    const btn = results.querySelector(`.ss-transfer-btn-${id}`);
+                    if (btn) {
+                        btn.addEventListener('click', () => {
+                            fillSunoForm(data.lyrics, data.style);
+                            const oldText = btn.textContent;
+                            btn.textContent = '✅ Đã chuyển!';
+                            btn.style.background = '#4ade80';
+                            btn.style.color = '#0f172a';
+                            setTimeout(() => {
+                                btn.textContent = oldText;
+                                btn.style.background = '';
+                                btn.style.color = '';
+                            }, 2000);
+                        });
+                    }
+                });
             }
         } else {
             status.textContent = 'Lỗi AI: ' + response.error;
@@ -237,3 +282,50 @@ setInterval(() => {
         injectSidebar();
     }
 }, 2000);
+
+const ssTemplates = [
+    { name: 'Pop/Ballad (Chuẩn)', tags: 'pop, ballad, standard structure, emotional', structure: '[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Bridge]\n\n[Chorus]\n\n[Outro]' },
+    { name: 'Phonk (Aggressive)', tags: 'phonk, cowbell, heavy 808 sub bass, distorted', structure: '[Intro]\\n(Muffled vocal sample, heavy 808)\\n\\n[Verse]\\n(Distorted 808, aggressive cowbells)\\n\\n[Build Up]\\n\\n[Drop]\\n(High energy, fast cowbell melody)\\n\\n[Verse 2]\\n\\n[Drop]\\n\\n[Outro]' },
+    { name: 'Afrohouse', tags: 'afro house, organic percussion, deep bass, hypnotic, 120 bpm', structure: '[Intro] (Atmospheric pads, shaker)\\n\\n[Verse] (Tribal drums enter, deep vocal chant)\\n\\n[Build Up]\\n\\n[Drop] (Driving syncopated kick, deep bassline)\\n\\n[Breakdown] (Emotional chords)\\n\\n[Drop 2] (Full energy, rhythmic synths)\\n\\n[Outro] (Fading drums)' },
+    { name: 'Tech House / Techno', tags: 'tech house, driving bass, minimal vocal cuts, 126 bpm', structure: '[Intro] (Punchy 4/4 Kick, hi-hats)\\n\\n[Verse] (Groovy rolling bass introduces)\\n\\n[Build Up] (Snare roll, riser synth)\\n\\n[Drop] (Heavy club bass, minimalistic vocal chop)\\n\\n[Breakdown] (Tension building pads)\\n\\n[Drop 2] (Maximum energy, driving groove)\\n\\n[Outro]' },
+    { name: 'Rap / Hip-Hop', tags: 'hip hop, boom bap, rap, storytelling', structure: '[Intro]\n\n[Hook]\n\n[Verse 1]\n(Rap 16 bars)\n\n[Hook]\n\n[Verse 2]\n(Rap 16 bars)\n\n[Hook]\n\n[Outro]' },
+    { name: 'EDM / Vinahouse', tags: 'edm, vinahouse, high energy, fast tempo, 140 bpm', structure: '[Intro Beat]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Beat Drop] (High Energy Vinahouse)\n\n[Verse]\n\n[Chorus]\n\n[Beat Drop]\n\n[Outro]' }
+];
+
+function renderTemplates() {
+    const list = document.getElementById('ss-template-list');
+    if (!list) return;
+    let html = '';
+    ssTemplates.forEach((tpl, i) => {
+        html += `
+        <div class="ss-suggestion-card">
+            <div class="ss-card-row">
+                <strong>${tpl.name}</strong>
+                <div class="ss-style-tags" style="font-size: 11px; padding: 6px;">${tpl.tags}</div>
+            </div>
+            <div class="ss-card-row">
+                <pre class="ss-lyrics-box" style="max-height: 100px;">${tpl.structure.replace(/\\n/g, '\n')}</pre>
+            </div>
+            <button class="ss-btn ss-btn-transfer" id="ss-tpl-btn-${i}">✨ Dùng cấu trúc này</button>
+        </div>`;
+    });
+    list.innerHTML = html;
+
+    ssTemplates.forEach((tpl, i) => {
+        const btn = document.getElementById(`ss-tpl-btn-${i}`);
+        if(btn) {
+            btn.addEventListener('click', () => {
+                fillSunoForm(tpl.structure.replace(/\\n/g, '\n'), tpl.tags);
+                const old = btn.textContent;
+                btn.textContent = '✅ Đã điền vào Suno!';
+                btn.style.background = '#4ade80';
+                btn.style.color = '#0f172a';
+                setTimeout(() => {
+                    btn.textContent = old;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+    });
+}

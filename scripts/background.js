@@ -61,7 +61,11 @@ Yêu cầu trình bày:
 Nhiệm vụ: Phân tích hoặc đưa ra gợi ý xuất sắc để người dùng phát triển bài hát trên Suno AI.
 Mục tiêu hiện tại: ${data.type} (title = Đặt tên bài hát CỰC CHẤT, topic = Gợi ý ý tưởng concept, next_line = Gợi ý câu hát tiếp, genre = Phân tích thể loại/style tags của một bài hát có thật).
 Yêu cầu trình bày:
-- Nếu user cần 'genre' (thể loại): Hãy liệt kê chính xác các Style Tags (thể loại, nhạc cụ, tempo, âm hưởng/mood, loại giọng hát) của bài hát được nhắc đến. Đưa ra một chuỗi tags chuẩn (ngăn cách bằng dấu phẩy, dùng Tiếng Anh) để user copy thẳng vào Suno. Sau đó giải thích ngắn gọn bằng Tiếng Việt.
+- Nếu user cần 'genre' (thể loại): Hãy phân tích ngắn gọn, sau đó BẮT BUỘC đưa ra 2 lựa chọn (Ví dụ: Lựa chọn 1: Có lời, Lựa chọn 2: Nhạc không lời). Dưới mỗi lựa chọn, BẮT BUỘC cung cấp chính xác 2 thẻ sau:
+  [STYLE]chuỗi tags tiếng anh, phân cách bằng dấu phẩy[/STYLE]
+  [LYRICS]
+  cấu trúc lời bài hát hoặc cấu trúc nhạc đệm (ví dụ: [Verse], [Chorus], [Instrumental Drop]...). LƯU Ý: TOÀN BỘ NỘI DUNG TRONG THẺ [LYRICS] (bao gồm cả ghi chú, hướng dẫn cảm xúc, nhạc cụ) PHẢI ĐƯỢC VIẾT BẰNG TIẾNG ANH 100% để tối ưu cho hệ thống Suno.
+  [/LYRICS]
 - Nếu là các gợi ý khác: Dùng dạng danh sách gạch đầu dòng, bắt tai và tự nhiên. Đề xuất 3-5 option.
 - In đậm những từ khóa quan trọng.`;
     }
@@ -84,7 +88,7 @@ function getUserPrompt(request) {
     if (request.action === 'rhyme') return `Tìm vần ưu tiên ${request.type} cho từ/cụm từ gốc này: "${request.word}"`;
     if (request.action === 'suggest') {
         if (request.type === 'genre') {
-            return `Hãy phân tích và cho tôi biết Thể loại nhạc (Style tags, mood, instruments, tempo) của bài hát này: "${request.context}". Làm ơn viết ra một chuỗi tags tiếng Anh hoàn chỉnh, ngăn cách bằng dấu phẩy để tôi chèn trực tiếp vào Suno AI.`;
+            return `Hãy phân tích Thể loại nhạc (Style tags, mood, instruments, tempo) của bài hát này: "${request.context}". Vui lòng đưa ra 2 lựa chọn (Có lời và Nhạc không lời) theo đúng định dạng [STYLE]...[/STYLE] và [LYRICS]...[/LYRICS] đã yêu cầu.`;
         }
         let p = `Tôi cần trợ giúp động não (brainstorm). Xin gợi ý ${request.type}.`;
         if (request.context) p += `\nIdea/Thông tin bối cảnh ban đầu: ${request.context}`;
