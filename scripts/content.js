@@ -67,6 +67,7 @@ function injectSidebar() {
             <textarea id="ss-prompt-gen" placeholder="Ví dụ: Một bài nhạc Trap rap cực gắt về sự nỗ lực vươn lên..."></textarea>
             <button id="ss-btn-gen" class="ss-btn">✨ Tạo Lyrics & Style</button>
             <div class="ss-status" id="ss-status-gen"></div>
+            <div class="ss-results" id="ss-results-gen" style="display:none; margin-top: 10px;"></div>
         </div>
 
         <!-- Tab: Rhyme -->
@@ -103,9 +104,50 @@ function injectSidebar() {
         </div>
 
         <!-- Tab: Analyze -->
-    <div class="ss-tab-content" id="tab-analyze">
-            <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.5;">Trợ lý AI sẽ đọc Lời Bài Hát hiện tại để phân tích cấu trúc chuẩn và lỗi lặp từ.</p>
-            <button id="ss-btn-analyze" class="ss-btn">📑 Bắt Đầu Phân Tích</button>
+        <div class="ss-tab-content" id="tab-analyze">
+            <div class="ss-sub-tabs">
+                <div class="ss-sub-tab active" id="ss-sub-tab-lyrics">Phân tích Lời</div>
+                <div class="ss-sub-tab" id="ss-sub-tab-audio">Phân tích Nhạc</div>
+            </div>
+
+            <!-- Panel: Phân tích Lời -->
+            <div id="ss-panel-lyrics" style="display: flex; flex-direction: column; gap: 12px;">
+                <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.5;">Trợ lý AI sẽ đọc Lời Bài Hát hiện tại để phân tích cấu trúc chuẩn và lỗi lặp từ.</p>
+                <button id="ss-btn-analyze" class="ss-btn">📑 Bắt Đầu Phân Tích</button>
+            </div>
+
+            <!-- Panel: Phân tích Nhạc -->
+            <div id="ss-panel-audio" style="display: none; flex-direction: column; gap: 12px;">
+                <p style="font-size:13px; color:#94a3b8; margin:0; line-height:1.5;">Tải lên file nhạc hoặc dán link YouTube để phân tích mood, vibe và thể loại nhạc.</p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 4px;">
+                    <button class="ss-btn" id="ss-mode-file" style="margin: 0; padding: 10px; font-size: 11px; flex: 1;">📁 File âm thanh</button>
+                    <button class="ss-btn ss-btn-transfer" id="ss-mode-yt" style="margin: 0; padding: 10px; font-size: 11px; flex: 1;">🎥 YouTube Link</button>
+                </div>
+
+                <!-- Container: Chế độ File -->
+                <div id="ss-container-file" style="display: block;">
+                    <div class="ss-upload-container" id="ss-dropzone">
+                        <span class="ss-upload-icon">🎵</span>
+                        <span class="ss-upload-text">Kéo thả file hoặc Click để chọn</span>
+                        <span class="ss-upload-hint">Hỗ trợ MP3, WAV (Giới hạn dưới 4MB)</span>
+                        <input type="file" id="ss-file-input" accept="audio/*" style="display: none;">
+                    </div>
+                    <div class="ss-file-info" id="ss-file-info">
+                        <span>📄 File đã chọn:</span>
+                        <span id="ss-file-name" style="color: white; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                    </div>
+                </div>
+
+                <!-- Container: Chế độ YouTube -->
+                <div id="ss-container-yt" style="display: none;">
+                    <label>Link video YouTube:</label>
+                    <input type="text" id="ss-input-yt" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+
+                <button id="ss-btn-analyze-audio" class="ss-btn" disabled>🔍 Phân Tích Nhạc</button>
+            </div>
+
             <div class="ss-status" id="ss-status-analyze"></div>
             <div class="ss-results" id="ss-results-analyze" style="display:none;"></div>
         </div>
@@ -175,7 +217,7 @@ function setupActions() {
         callBackground('suggest', { type, context, lyricsContext }, 'sug');
     });
 
-    // 4. Analyze
+    // 4. Analyze Lyrics
     document.getElementById('ss-btn-analyze').addEventListener('click', () => {
         const { lyricsEl } = findInputs();
         if (!lyricsEl || !lyricsEl.value.trim()) {
@@ -187,13 +229,215 @@ function setupActions() {
         callBackground('analyze', { lyrics: lyricsEl.value }, 'analyze');
     });
 
+    // --- Xử lý cho Phân tích Nhạc ---
+    const subTabLyrics = document.getElementById('ss-sub-tab-lyrics');
+    const subTabAudio = document.getElementById('ss-sub-tab-audio');
+    const panelLyrics = document.getElementById('ss-panel-lyrics');
+    const panelAudio = document.getElementById('ss-panel-audio');
+    
+    const resultsContainer = document.getElementById('ss-results-analyze');
+    const statusContainer = document.getElementById('ss-status-analyze');
+
+    // Chuyển tab phân tích
+    subTabLyrics.addEventListener('click', () => {
+        subTabLyrics.classList.add('active');
+        subTabAudio.classList.remove('active');
+        panelLyrics.style.display = 'flex';
+        panelAudio.style.display = 'none';
+        
+        statusContainer.textContent = '';
+        resultsContainer.style.display = 'none';
+    });
+
+    subTabAudio.addEventListener('click', () => {
+        subTabAudio.classList.add('active');
+        subTabLyrics.classList.remove('active');
+        panelAudio.style.display = 'flex';
+        panelLyrics.style.display = 'none';
+        
+        statusContainer.textContent = '';
+        resultsContainer.style.display = 'none';
+    });
+
+    // Chuyển chế độ input nhạc: File vs YouTube
+    const modeFileBtn = document.getElementById('ss-mode-file');
+    const modeYtBtn = document.getElementById('ss-mode-yt');
+    const containerFile = document.getElementById('ss-container-file');
+    const containerYt = document.getElementById('ss-container-yt');
+    const analyzeAudioBtn = document.getElementById('ss-btn-analyze-audio');
+    
+    let activeAudioMode = 'file'; // 'file' hoặc 'youtube'
+    let selectedAudioFile = null;
+
+    const updateAnalyzeAudioButtonState = () => {
+        if (activeAudioMode === 'file') {
+            analyzeAudioBtn.disabled = !selectedAudioFile;
+        } else {
+            const val = document.getElementById('ss-input-yt').value.trim();
+            analyzeAudioBtn.disabled = !val.includes('youtube.com/') && !val.includes('youtu.be/');
+        }
+    };
+
+    modeFileBtn.addEventListener('click', () => {
+        activeAudioMode = 'file';
+        modeFileBtn.classList.remove('ss-btn-transfer'); // làm nó sáng lên
+        modeYtBtn.classList.add('ss-btn-transfer'); // làm nó mờ đi
+        containerFile.style.display = 'block';
+        containerYt.style.display = 'none';
+        updateAnalyzeAudioButtonState();
+    });
+
+    modeYtBtn.addEventListener('click', () => {
+        activeAudioMode = 'youtube';
+        modeYtBtn.classList.remove('ss-btn-transfer');
+        modeFileBtn.classList.add('ss-btn-transfer');
+        containerYt.style.display = 'block';
+        containerFile.style.display = 'none';
+        updateAnalyzeAudioButtonState();
+    });
+
+    // File Upload Handler
+    const dropzone = document.getElementById('ss-dropzone');
+    const fileInput = document.getElementById('ss-file-input');
+    const fileInfo = document.getElementById('ss-file-info');
+    const fileName = document.getElementById('ss-file-name');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleSelectedFile(e.target.files[0]);
+        }
+    });
+
+    // Drag & Drop
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleSelectedFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    function handleSelectedFile(file) {
+        // Giới hạn 4MB
+        if (file.size > 4 * 1024 * 1024) {
+            statusContainer.textContent = 'Lỗi: Dung lượng file vượt quá 4MB. Hãy chọn file nhỏ hơn.';
+            statusContainer.style.color = '#ef4444';
+            selectedAudioFile = null;
+            fileInfo.classList.remove('active');
+            updateAnalyzeAudioButtonState();
+            return;
+        }
+
+        statusContainer.textContent = '';
+        selectedAudioFile = file;
+        fileName.textContent = file.name;
+        fileInfo.classList.add('active');
+        updateAnalyzeAudioButtonState();
+    }
+
+    // YouTube Input Change
+    document.getElementById('ss-input-yt').addEventListener('input', updateAnalyzeAudioButtonState);
+
+    // Xử lý Click Phân Tích Nhạc
+    analyzeAudioBtn.addEventListener('click', () => {
+        statusContainer.textContent = '';
+        resultsContainer.style.display = 'none';
+
+        if (activeAudioMode === 'file') {
+            if (!selectedAudioFile) return;
+            
+            // UI Loading state
+            analyzeAudioBtn.disabled = true;
+            const oldText = analyzeAudioBtn.textContent;
+            analyzeAudioBtn.textContent = 'Đang đọc file...';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result.split(',')[1];
+                let format = 'mp3';
+                if (selectedAudioFile.name.endsWith('.wav')) format = 'wav';
+                else if (selectedAudioFile.name.endsWith('.m4a')) format = 'm4a';
+                else if (selectedAudioFile.name.endsWith('.ogg')) format = 'ogg';
+
+                analyzeAudioBtn.textContent = 'Đang phân tích AI...';
+                
+                // Gọi API gửi file
+                callBackground(
+                    'analyze_audio', 
+                    { mode: 'file', audioData: base64Data, format: format }, 
+                    'analyze',
+                    'ss-btn-analyze-audio', 
+                    'ss-status-analyze', 
+                    'ss-results-analyze'
+                );
+            };
+            reader.onerror = function() {
+                statusContainer.textContent = 'Lỗi: Không thể đọc file âm thanh.';
+                statusContainer.style.color = '#ef4444';
+                analyzeAudioBtn.disabled = false;
+                analyzeAudioBtn.textContent = oldText;
+            };
+            reader.readAsDataURL(selectedAudioFile);
+        } else {
+            const ytLink = document.getElementById('ss-input-yt').value.trim();
+            if (!ytLink) return;
+
+            analyzeAudioBtn.disabled = true;
+            const oldText = analyzeAudioBtn.textContent;
+            analyzeAudioBtn.textContent = 'Lấy thông tin YouTube...';
+            
+            // Gọi oEmbed API của YouTube để lấy Metadata
+            fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent(ytLink) + '&format=json')
+                .then(res => {
+                    if (!res.ok) throw new Error('Không thể fetch oEmbed');
+                    return res.json();
+                })
+                .then(data => {
+                    analyzeAudioBtn.textContent = 'Đang phân tích AI...';
+                    callBackground(
+                        'analyze_audio', 
+                        { mode: 'youtube', title: data.title, author: data.author_name, url: ytLink }, 
+                        'analyze',
+                        'ss-btn-analyze-audio', 
+                        'ss-status-analyze', 
+                        'ss-results-analyze'
+                    );
+                })
+                .catch(err => {
+                    console.warn("oEmbed failed, fallback to direct title extraction.", err);
+                    analyzeAudioBtn.textContent = 'Đang phân tích AI...';
+                    
+                    // Fallback: Trích xuất tạm thời hoặc gửi trực tiếp đường link để GPT tự nhận diện
+                    callBackground(
+                        'analyze_audio', 
+                        { mode: 'youtube', title: ytLink, author: '', url: ytLink }, 
+                        'analyze',
+                        'ss-btn-analyze-audio', 
+                        'ss-status-analyze', 
+                        'ss-results-analyze'
+                    );
+                });
+        }
+    });
+
     renderTemplates();
 }
 
-function callBackground(action, payload, tabId) {
-    const btn = document.getElementById(`ss-btn-${tabId}`);
-    const status = document.getElementById(`ss-status-${tabId}`);
-    const results = document.getElementById(`ss-results-${tabId}`);
+function callBackground(action, payload, tabId, customBtnId = null, customStatusId = null, customResultsId = null) {
+    const btn = document.getElementById(customBtnId || `ss-btn-${tabId}`);
+    const status = document.getElementById(customStatusId || `ss-status-${tabId}`);
+    const results = document.getElementById(customResultsId || `ss-results-${tabId}`);
     
     // UI state
     btn.disabled = true;
@@ -222,6 +466,22 @@ function callBackground(action, payload, tabId) {
             
             if (action === 'generate') {
                 fillSunoForm(response.data.lyrics, response.data.style_tags);
+                if (results) {
+                    results.style.display = 'block';
+                    results.innerHTML = `
+                    <div class="ss-suggestion-card">
+                        <div class="ss-card-row">
+                            <strong>Style Tags:</strong>
+                            <div class="ss-style-tags">${response.data.style_tags}</div>
+                        </div>
+                        <div class="ss-card-row">
+                            <strong>Lyrics:</strong>
+                            <pre class="ss-lyrics-box" style="white-space: pre-wrap; font-family: inherit;">${response.data.lyrics}</pre>
+                        </div>
+                        <div style="font-size:11px;color:#4ade80;margin-top:8px;">*Đã thử tự động điền vào khung bên trái. Nếu Suno không nhận, bạn có thể copy bên trên nhé 😊.</div>
+                    </div>
+                    `;
+                }
             } else if (results) {
                 results.style.display = 'block';
                 let html = response.data;
@@ -247,6 +507,25 @@ function callBackground(action, payload, tabId) {
                     </div>
                     `;
                 });
+
+                // Hỗ trợ thêm trường hợp chỉ trả về [STYLE]...[/STYLE] (phân tích audio)
+                let styleOnlyRegex = /\[STYLE\]([\s\S]*?)\[\/STYLE\]/gi;
+                if (suggestData.length === 0) {
+                    html = html.replace(styleOnlyRegex, (match, style) => {
+                        let id = suggestData.length;
+                        suggestData.push({ style: style.trim(), lyrics: "" });
+                        
+                        return `
+                        <div class="ss-suggestion-card">
+                            <div class="ss-card-row">
+                                <strong>Style of Music:</strong>
+                                <div class="ss-style-tags">${style.trim()}</div>
+                            </div>
+                            <button class="ss-btn ss-btn-transfer ss-transfer-btn-${id}" data-id="${id}">✨ Điền Style vào Suno</button>
+                        </div>
+                        `;
+                    });
+                }
 
                 html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                 html = html.replace(/\n/g, '<br>');

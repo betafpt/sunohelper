@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "G.Rythm AI Manager",
   "version": "1.0",
-  "description": "Generate Suno lyrics and music styles effortlessly using Google Gemini AI.",
+  "description": "Generate Suno lyrics and music styles effortlessly using OpenAI API.",
   "permissions": [
     "storage"
   ],
