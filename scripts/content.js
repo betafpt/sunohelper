@@ -43,6 +43,15 @@ function fillSunoForm(lyrics, styleTags) {
     if (styleEl && styleTags) setNativeValue(styleEl, styleTags);
 }
 
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Sidebar Injection
 function injectSidebar() {
     if (document.getElementById('suno-studio-sidebar')) return;
@@ -97,7 +106,7 @@ function injectSidebar() {
                 <option value="next_line">Gợi ý Câu Tiếp Theo (Theo lời hiện tại)</option>
             </select>
             <label style="margin-top: 4px;">Nội dung / Bối cảnh:</label>
-            <textarea id="ss-input-sug" placeholder="VD: Để tra thể loại, hãy nhập 'Khóc - Đông Nhi'. Để xin gợi ý, nhập ý tưởng..." style="height: 60px;"></textarea>
+            <textarea id="ss-input-sug" placeholder="VD: Để tra Style of Music, hãy nhập 'Khóc - Đông Nhi'. Để xin gợi ý, nhập ý tưởng..." style="height: 60px;"></textarea>
             <button id="ss-btn-sug" class="ss-btn">💡 Hỏi AI</button>
             <div class="ss-status" id="ss-status-sug"></div>
             <div class="ss-results" id="ss-results-sug" style="display:none;"></div>
@@ -465,20 +474,31 @@ function callBackground(action, payload, tabId, customBtnId = null, customStatus
             status.style.color = '#4ade80';
             
             if (action === 'generate') {
-                fillSunoForm(response.data.lyrics, response.data.style_tags);
+                const style = response.data.style_of_music || response.data.style_tags;
+                fillSunoForm(response.data.lyrics, style);
                 if (results) {
                     results.style.display = 'block';
                     results.innerHTML = `
                     <div class="ss-suggestion-card">
                         <div class="ss-card-row">
-                            <strong>Style Tags:</strong>
-                            <div class="ss-style-tags">${response.data.style_tags}</div>
+                            <strong>Style of Music:</strong>
+                            <div class="ss-style-tags">${escapeHtml(style)}</div>
                         </div>
                         <div class="ss-card-row">
-                            <strong>Lyrics:</strong>
-                            <pre class="ss-lyrics-box" style="white-space: pre-wrap; font-family: inherit;">${response.data.lyrics}</pre>
+                            <strong>Lyrics / Structure:</strong>
+                            <pre class="ss-lyrics-box" style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(response.data.lyrics)}</pre>
                         </div>
-                        <div style="font-size:11px;color:#4ade80;margin-top:8px;">*Đã thử tự động điền vào khung bên trái. Nếu Suno không nhận, bạn có thể copy bên trên nhé 😊.</div>
+                        ${response.data.exclude_styles ? `
+                        <div class="ss-card-row">
+                            <strong>Exclude Styles:</strong>
+                            <div class="ss-style-tags">${escapeHtml(response.data.exclude_styles)}</div>
+                        </div>` : ''}
+                        ${response.data.production_notes ? `
+                        <div class="ss-card-row">
+                            <strong>Production Notes:</strong>
+                            <pre class="ss-lyrics-box" style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(response.data.production_notes)}</pre>
+                        </div>` : ''}
+                        <div style="font-size:11px;color:#4ade80;margin-top:8px;">*Đã thử tự động điền Style of Music và Lyrics/Structure vào Suno. Nếu Suno không nhận, bạn có thể copy bên trên.</div>
                     </div>
                     `;
                 }

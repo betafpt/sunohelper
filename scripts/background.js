@@ -1,3 +1,5 @@
+importScripts('suno_format.js');
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleOpenAIAction(request)
         .then(data => sendResponse({ success: true, data: data }))
@@ -25,23 +27,40 @@ async function handleOpenAIAction(request) {
 
 function getSystemInstruction(action, data) {
     if (action === 'generate') {
-        return `Bạn là một nhà sản xuất âm nhạc và nhạc sĩ chuyên viết lời bài hát hợp thị hiếu cho Suno AI.
-Nhiệm vụ: Viết Lời bài hát (Lyrics) và Thẻ phong cách (Style tags) dựa trên ý tưởng của người dùng.
+        return `Bạn là producer, songwriter và prompt engineer cho Suno AI. Hãy tạo prompt làm nhạc nghe như được sáng tác, phối khí, biểu diễn, thu âm, mix và master bởi con người.
 
-Yêu cầu bắt buộc:
-1. NẾU LÀ NHẠC CÓ LỜI (Ví dụ có pop, rap, ballad,...): Lời bài hát phải có cấu trúc chuẩn, chia rõ ràng các phần: [Intro], [Verse], [Chorus], [Bridge], [Outro]. Lời bài hát phải có vần điệu, nhịp nhàng.
-2. NẾU LÀ NHẠC KHÔNG LỜI (Instrumental / Beat / Không lời): Tuyệt đối KHÔNG viết lời hát (từ ngữ ca hát) có nghĩa. Chỉ được viết CẤU TRÚC (ví dụ: [Instrumental Intro], [Drop], [Build Up]) kết hợp với mô tả nhạc cụ, luồng cảm xúc bằng TIẾNG ANH trong ngoặc đơn. Ví dụ:
-[Intro]
-(Atmospheric synth pad, slow build up, lo-fi beats)
+Luôn suy luận các lớp: composition, arrangement, performance, instrument/source timbre, recording space, mix, master/tonal finish, và vocal/lyrics nếu có lời.
 
-[Chorus]
-(Heavy bassline, energetic electronic melody, no vocals)
-3. Style tags: dưới 120 ký tự, ngắn gọn, phân tách bằng dấu phẩy. Bạn cũng phải tự động thêm chữ 'instrumental' vào đầu Style tags nếu nhận diện yêu cầu là nhạc không lời.
+Phân loại ngầm từ yêu cầu: vocal hay instrumental, genre/subgenre, mood, BPM/tempo feel, instruments, groove/rhythmic identity, energy curve, production era/aesthetic, tonal target warm/neutral/bright. Tự suy luận chi tiết hợp lý, đừng hỏi lại.
 
-TRẢ VỀ DUY NHẤT AUDIO OBJECT JSON THEO ĐỊNH DẠNG:
+Yêu cầu nhạc tính:
+- Tạo hook/motif/riff/progression/groove rõ ràng khi phù hợp, lặp lại có biến hóa thay vì các đoạn rời rạc.
+- Humanize đúng thể loại: micro-timing, velocity variation, phrasing, articulation, attacks/decays, ensemble interaction. Không làm nhạc công cố tình cẩu thả.
+- Arrangement có tương phản: intro thưa, layering, breakdown, cut drum/bass, silence ngắn, đổi register, climax có chuẩn bị. Tránh loudness tối đa liên tục.
+- Tonal realism là bắt buộc: source believable, rich low-mid body, smooth upper mids, controlled treble, rounded but articulate transients, realistic depth, restrained compression, dynamic range, subtle analog/tape-like saturation khi phù hợp. Punchy không được brittle.
+
+Instrumental:
+- Lyrics phải là full-song arrangement map bằng bracketed tags, không có prose để hát.
+- Không được trả về chỉ các tag cấm vocal. Phải viết 8-12 sections phủ toàn bộ bản nhạc: [Intro], [Main Motif], [Verse/Theme A], [Build], [Drop/Chorus/Theme B], [Breakdown], [Variation], [Final Drop/Final Theme], [Outro] hoặc cấu trúc tương đương đúng thể loại.
+- Mỗi section cần 1-3 dòng mô tả cụ thể bằng tiếng Anh về nhạc cụ, groove, motif/hook, energy, dynamics, register, fills, transitions, tonal/room character. Ví dụ: [Intro]\n[Instrumental]\n(Close-miked muted guitar states the two-note motif over soft brush percussion; warm room reflections, restrained low end.)
+- Bắt buộc đưa các tag: [Instrumental], [No Vocals], [No Singing], [No Spoken Words]. Thêm [No Choir] hoặc [No Vocal Chops] nếu cần.
+
+Vocal:
+- Viết complete singable lyrics cho cả bài, không chỉ outline. Tối thiểu gồm [Intro], 2 verses, [Pre-Chorus] khi phù hợp, [Chorus] có hook rõ, [Bridge] hoặc [Breakdown], final chorus/outro.
+- Mỗi verse nên có nhiều dòng lyric cụ thể, có hình ảnh đời thật và subtext; chorus phải có hook nhớ được; section tags có thể kèm performance direction ngắn.
+- Tránh perfect rhyme máy móc, line length đều tăm tắp, cliché, metaphor chồng chất, từ gượng để lấy vần.
+- Thiết kế singer: register phù hợp, phrasing tự nhiên, breath, selective vibrato, natural register transitions, varied phrase endings, controlled sibilance, chest/body resonance.
+
+STYLE OF MUSIC: tối đa 1000 ký tự, tốt nhất 650-900. Dùng cho sonic DNA: genre, tempo, mood, instruments, rhythm, vocal identity nếu có, performance, tonal/recording, mix/master. Không lặp chi tiết arrangement đã có trong lyrics.
+
+EXCLUDE STYLES: luôn tạo loại trừ có chọn lọc, chỉ loại các xung đột như brittle highs, harsh treble, piercing upper mids, glassy sound, metallic transients, digital harshness, hyped top end, thin mix, sterile production, harsh cymbals, brittle hi-hats, synthetic timbre, excessive widening, over-compression, brickwall limiting. Không loại trừ core genre/trait người dùng yêu cầu.
+
+TRẢ VỀ DUY NHẤT JSON hợp lệ theo schema:
 {
-  "style_tags": "string",
-  "lyrics": "string"
+  "style_of_music": "string under 1000 characters",
+  "lyrics": "string",
+  "exclude_styles": "string",
+  "production_notes": "string"
 }`;
     }
 
@@ -68,9 +87,9 @@ Nhiệm vụ: Phân tích hoặc đưa ra gợi ý xuất sắc để người d
 Mục tiêu hiện tại: ${data.type} (title = Đặt tên bài hát CỰC CHẤT, topic = Gợi ý ý tưởng concept, next_line = Gợi ý câu hát tiếp, genre = Phân tích thể loại/style tags của một bài hát có thật).
 Yêu cầu trình bày:
 - Nếu user cần 'genre' (thể loại): Hãy phân tích ngắn gọn, sau đó BẮT BUỘC đưa ra 2 lựa chọn (Ví dụ: Lựa chọn 1: Có lời, Lựa chọn 2: Nhạc không lời). Dưới mỗi lựa chọn, BẮT BUỘC cung cấp chính xác 2 thẻ sau:
-  [STYLE]chuỗi tags tiếng anh, phân cách bằng dấu phẩy[/STYLE]
+  [STYLE]STYLE OF MUSIC tiếng Anh, tối đa 1000 ký tự: genre/subgenre, BPM/tempo feel, mood, instruments, rhythmic identity, performance character, tonal/recording/mix/master character[/STYLE]
   [LYRICS]
-  cấu trúc lời bài hát hoặc cấu trúc nhạc đệm (ví dụ: [Verse], [Chorus], [Instrumental Drop]...). LƯU Ý: TOÀN BỘ NỘI DUNG TRONG THẺ [LYRICS] (bao gồm cả ghi chú, hướng dẫn cảm xúc, nhạc cụ) PHẢI ĐƯỢC VIẾT BẰNG TIẾNG ANH 100% để tối ưu cho hệ thống Suno.
+  cấu trúc lời bài hát hoặc arrangement map nhạc đệm. Với instrumental phải có [Instrumental], [No Vocals], [No Singing], [No Spoken Words] và không có prose để hát. LƯU Ý: TOÀN BỘ NỘI DUNG TRONG THẺ [LYRICS] (bao gồm cả ghi chú, hướng dẫn cảm xúc, nhạc cụ) PHẢI ĐƯỢC VIẾT BẰNG TIẾNG ANH 100% để tối ưu cho hệ thống Suno.
   [/LYRICS]
 - Nếu là các gợi ý khác: Dùng dạng danh sách gạch đầu dòng, bắt tai và tự nhiên. Đề xuất 3-5 option.
 - In đậm những từ khóa quan trọng.`;
@@ -88,12 +107,12 @@ Trả về kết quả dễ đọc dưới dạng gạch đầu dòng Markdown. 
 
     if (action === 'analyze_audio') {
         return `Bạn là một chuyên gia âm nhạc hàng đầu và nhà sản xuất âm nhạc kỳ cựu.
-Nhiệm vụ: Phân tích bài hát hoặc tệp âm thanh được cung cấp để trích xuất: Mood (cảm xúc), Vibe (không gian nhạc), Thể loại cụ thể (Genre), Nhạc cụ chủ đạo, và Tempo (tốc độ).
+Nhiệm vụ: Phân tích bài hát hoặc tệp âm thanh được cung cấp để trích xuất: Mood (cảm xúc), Vibe (không gian nhạc), Thể loại cụ thể (Genre), Nhạc cụ chủ đạo, Tempo (tốc độ), performance character, tonal/recording/mix/master character.
 Yêu cầu trình bày:
 - Trình bày dạng danh sách gạch đầu dòng rõ ràng, trực quan bằng tiếng Việt.
-- BẮT BUỘC cung cấp chính xác thẻ Style Tags tiếng Anh tối ưu cho Suno AI ở định dạng sau ở cuối câu trả lời:
-  [STYLE]chuỗi tags tiếng anh, phân cách bằng dấu phẩy, dưới 120 ký tự[/STYLE]
-  Ví dụ: [STYLE]pop, energetic, synth, bright, 120 bpm[/STYLE]
+- BẮT BUỘC cung cấp chính xác thẻ STYLE OF MUSIC tiếng Anh tối ưu cho Suno AI ở định dạng sau ở cuối câu trả lời:
+  [STYLE]genre/subgenre, BPM/tempo feel, mood, instruments, rhythmic identity, performance character, tonal/recording/mix/master character; tối đa 1000 ký tự[/STYLE]
+  Ví dụ: [STYLE]warm indie pop, 96 bpm relaxed pocket, close intimate vocal, brushed drums, rounded bass, natural room depth, smooth upper mids, controlled treble, restrained compression[/STYLE]
 - Đi thẳng vào phân tích chi tiết, không chào hỏi dông dài.`;
     }
 
@@ -105,7 +124,7 @@ function getUserPrompt(request) {
     if (request.action === 'rhyme') return `Tìm vần ưu tiên ${request.type} cho từ/cụm từ gốc này: "${request.word}"`;
     if (request.action === 'suggest') {
         if (request.type === 'genre') {
-            return `Hãy phân tích Thể loại nhạc (Style tags, mood, instruments, tempo) của bài hát này: "${request.context}". Vui lòng đưa ra 2 lựa chọn (Có lời và Nhạc không lời) theo đúng định dạng [STYLE]...[/STYLE] và [LYRICS]...[/LYRICS] đã yêu cầu.`;
+            return `Hãy phân tích Thể loại nhạc (Style of Music, mood, instruments, tempo, performance, tonal/recording character) của bài hát này: "${request.context}". Vui lòng đưa ra 2 lựa chọn (Có lời và Nhạc không lời) theo đúng định dạng [STYLE]...[/STYLE] và [LYRICS]...[/LYRICS] đã yêu cầu.`;
         }
         let p = `Tôi cần trợ giúp động não (brainstorm). Xin gợi ý ${request.type}.`;
         if (request.context) p += `\nIdea/Thông tin bối cảnh ban đầu: ${request.context}`;
@@ -270,8 +289,7 @@ async function callOpenAIAPI(apiKey, request) {
                 
                 if (request.action === 'generate') {
                      const parsedData = JSON.parse(textContent);
-                     if (!parsedData.style_tags || !parsedData.lyrics) throw new Error("Format JSON lỗi");
-                     return parsedData;
+                     return normalizeGeneratedSong(parsedData);
                 } else {
                      return textContent; // Trả về Markdown cho các chức năng khác
                 }
@@ -296,4 +314,8 @@ async function callOpenAIAPI(apiKey, request) {
         throw lastError;
     }
     throw new Error("Tất cả các mô hình (models) đều bị lỗi hoặc quá tải. Hãy thử lại sau.");
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = { getSystemInstruction };
 }
