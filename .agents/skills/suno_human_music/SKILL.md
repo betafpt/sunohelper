@@ -1,3 +1,8 @@
+---
+name: suno-human-music
+description: Optimize, create, improve, rewrite, analyze, or format prompts for SUNO AI music generation with human-like arrangement, mixing, dynamics, anti-harshness, and singable lyrics structuring. Use whenever user asks for SUNO prompts or music generation assistance.
+---
+
 # SUNO Human Music — Agent Skill v3
 
 ## Purpose
