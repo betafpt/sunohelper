@@ -15,17 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKey = apiKeyInput.value.trim();
         
         if (!apiKey) {
-            showStatus('Please enter an API key', '#ef4444'); // Red for error
+            showStatus('Vui lòng nhập API key', '#ef4444');
             return;
         }
 
         if (apiKey.length < 10) {
-            showStatus('Warning: API key format might be invalid?', '#eab308'); // Yellow for warning
-            // Still save it in case
+            showStatus('Cảnh báo: API key có thể chưa đúng định dạng', '#d97706');
         }
 
         chrome.storage.local.set({ openaiApiKey: apiKey }, () => {
-            showStatus('Settings saved successfully!', '#4ade80'); // Green for success
+            showStatus('Đã lưu cài đặt thành công!', '#20a46b');
         });
     });
 

@@ -106,6 +106,24 @@ Trả về kết quả dễ đọc dưới dạng gạch đầu dòng Markdown. 
     }
 
     if (action === 'analyze_audio') {
+        if (data?.mode === 'features') {
+            return `Bạn là một chuyên gia âm nhạc và producer. Người dùng cung cấp metadata và đặc trưng âm thanh được extension trích xuất cục bộ từ file, không phải raw audio.
+Nhiệm vụ: Suy luận mood, vibe, tempo feel, năng lượng, texture, tonal balance, dynamics, rhythmic character, nhạc cụ, kiểu bass/low-end và style phù hợp cho Suno AI từ dữ liệu đó.
+Yêu cầu:
+- Nói rõ các nhận định là suy luận từ đặc trưng âm thanh cục bộ, tránh khẳng định quá mức nếu dữ liệu không đủ.
+- Trình bày gọn, dễ đọc bằng tiếng Việt.
+- BẮT BUỘC có các mục riêng: Mood & Vibe, Tempo/Groove, Nhạc cụ & Texture, Bass / Low-end, Dấu hiệu Amapiano/Afro, Style cho Suno.
+- Ở mục Nhạc cụ & Texture: suy luận keys/piano/guitar/pad/vocal/percussion nếu dữ liệu gợi ý, và ghi mức chắc chắn khi cần.
+- Ở mục Bass / Low-end: phân biệt sub/808, bass guitar, synth bass, rounded bass, hoặc percussive log-drum bass; mô tả quan hệ kick-bass nếu có thể.
+- Không nhắc Amapiano/log-drum nếu genreCues.amapianoLogDrum.score dưới 0.45 hoặc evidence rỗng.
+- Nếu genreCues.amapianoLogDrum.score từ 0.45 đến dưới 0.65, chỉ ghi "có dấu hiệu nhẹ/cần kiểm chứng" và nêu bằng chứng.
+- Chỉ mô tả log-drum/amapiano rõ khi genreCues.amapianoLogDrum.score từ 0.65 trở lên.
+- Ở mục Dấu hiệu Amapiano/Afro: nếu đủ chứng cứ, kiểm tra log-drum bass, syncopated percussion, shaker/clave feel, airy keys/pads, double-time groove; nếu không đủ, nói ngắn rằng dữ liệu chưa ủng hộ.
+- BẮT BUỘC cung cấp chính xác thẻ STYLE OF MUSIC tiếng Anh tối ưu cho Suno AI ở định dạng:
+  [STYLE]genre/subgenre or close style family, BPM/tempo feel, mood, instruments/texture, bass type/low-end behavior, rhythmic identity including amapiano/Afro cues if present, performance character, tonal/recording/mix/master character; tối đa 1000 ký tự[/STYLE]
+- Đi thẳng vào kết quả, không chào hỏi.`;
+        }
+
         return `Bạn là một chuyên gia âm nhạc hàng đầu và nhà sản xuất âm nhạc kỳ cựu.
 Nhiệm vụ: Phân tích bài hát hoặc tệp âm thanh được cung cấp để trích xuất: Mood (cảm xúc), Vibe (không gian nhạc), Thể loại cụ thể (Genre), Nhạc cụ chủ đạo, Tempo (tốc độ), performance character, tonal/recording/mix/master character.
 Yêu cầu trình bày:
@@ -136,9 +154,23 @@ function getUserPrompt(request) {
         if (request.mode === 'youtube') {
             return `Hãy phân tích bài hát có tiêu đề "${request.title}"${request.author ? ` của tác giả "${request.author}"` : ''}. Đường dẫn: ${request.url}`;
         }
+        if (request.mode === 'features') {
+            return `Hãy phân tích file nhạc "${request.fileName || 'không rõ tên'}" dựa trên Đặc trưng âm thanh JSON sau. Ưu tiên nhận diện nhạc cụ, kiểu bass/low-end, groove và dấu hiệu Amapiano/log-drum nếu có. Hãy suy luận thận trọng và tạo [STYLE] dùng được cho Suno AI:\n\n${JSON.stringify(request.audioProfile || {}, null, 2)}`;
+        }
         return `Hãy phân tích đoạn nhạc này.`;
     }
     return "Hello";
+}
+
+function normalizeApiError(error) {
+    const message = error?.message || String(error || '');
+    if (message.includes('Failed to fetch')) {
+        return new Error('Không kết nối được API 302.ai. Hãy reload extension, kiểm tra mạng/API key, rồi thử lại.');
+    }
+    if (/Parameter error/i.test(message)) {
+        return new Error('API từ chối tham số audio. Extension đã chuyển file không tương thích sang WAV; nếu vẫn lỗi, hãy kiểm tra model audio/API key 302.ai hoặc thử MP3/WAV ngắn hơn.');
+    }
+    return error instanceof Error ? error : new Error(message || 'Lỗi API không xác định.');
 }
 
 async function callOpenAIAPI(apiKey, request) {
@@ -159,7 +191,7 @@ async function callOpenAIAPI(apiKey, request) {
     }
 
     const priorities = (request.action === 'analyze_audio' && request.mode === 'file')
-        ? ['gpt-4o-audio-preview']
+        ? ['gpt-audio-1.5', 'gpt-audio', 'gpt-audio-mini', 'gpt-4o-audio-preview']
         : [
             'gpt-4o',
             'gpt-4o-mini',
@@ -226,7 +258,6 @@ async function callOpenAIAPI(apiKey, request) {
                     }
                 ]
             });
-            payload.modalities = ["text"];
         } else {
             payload.messages.push({ role: "user", content: userPrompt });
             if (request.action === 'generate') {
@@ -300,6 +331,7 @@ async function callOpenAIAPI(apiKey, request) {
                     throw lastError; // Lỗi xác thực nghiêm trọng -> Dừng luôn
                 }
                 if (e.message.includes("Format JSON lỗi") || e.message.includes("Failed to fetch")) {
+                    lastError = normalizeApiError(e);
                     break; // Format lỗi thì break loop nhỏ để đổi model khác, hoặc network đứt thì cũng thử model khác
                 } else if (!e.message.includes("Model ")) {
                      break; 
@@ -311,7 +343,7 @@ async function callOpenAIAPI(apiKey, request) {
     } // End of outer model loop
 
     if (lastError) {
-        throw lastError;
+        throw normalizeApiError(lastError);
     }
     throw new Error("Tất cả các mô hình (models) đều bị lỗi hoặc quá tải. Hãy thử lại sau.");
 }

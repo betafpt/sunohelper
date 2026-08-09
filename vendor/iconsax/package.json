@@ -1,0 +1,44 @@
+{
+  "name": "iconsax",
+  "version": "0.1.1",
+  "description": "Iconsax web component — 1200+ free icons out of the box, Pro icons via `iconsax sync`. Works in React, Vue, Svelte and plain HTML.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./manifest.json": "./dist/manifest.json"
+  },
+  "bin": {
+    "iconsax": "./bin/iconsax.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "keywords": [
+    "icons",
+    "svg",
+    "web-components",
+    "custom-elements",
+    "react",
+    "vue",
+    "svelte",
+    "iconsax"
+  ],
+  "author": "Iconsax",
+  "license": "MIT",
+  "homepage": "https://iconsax.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iconsax/iconsax-npm"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

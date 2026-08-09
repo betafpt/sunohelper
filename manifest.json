@@ -7,7 +7,8 @@
     "storage"
   ],
   "host_permissions": [
-    "*://*.suno.com/*"
+    "*://*.suno.com/*",
+    "https://api.302.ai/*"
   ],
   "action": {
     "default_popup": "popup/index.html",
@@ -35,7 +36,13 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/icon128.png", "icons/logo.png"],
+      "resources": [
+        "icons/icon128.png",
+        "icons/logo.png",
+        "vendor/iconsax/index.js",
+        "vendor/iconsax/manifest.json",
+        "vendor/iconsax/data/*.json"
+      ],
       "matches": ["*://*.suno.com/*"]
     }
   ]
